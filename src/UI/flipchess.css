@@ -1,0 +1,265 @@
+#flipchess {
+	display: flex;
+	background: url(image/background.jpg) 100% 100% repeat;
+	/*border: blue 2px solid;*/
+	width: 550px;
+	margin: 0 auto;
+}
+
+#ui {
+	width: 360px;
+	padding: 5px;
+	margin-bottom: 20px;
+	user-select: none;
+	position: relative;
+}
+
+#hp {
+	margin: 0 37px;
+}
+
+.hpitem {
+	margin: 5px;
+	display: flex;
+}
+
+.turn {
+	border: gold 2px solid;
+	border-radius: 5px;
+}
+
+.progress-bar-container {
+	width: 200px;
+	height: 20px;
+	border-radius: 10px;
+	border: #807262 1px solid;
+	background-color: #807262;
+	margin: auto;
+	position: relative;
+}
+
+.progress-bar {
+	position: relative;
+	height: 100%;
+	border-radius: 10px;
+	transition-duration: 0.5s;
+}
+
+.progress-bar-text-val {
+	width: 100%;
+	line-height: 100%;
+	margin: 2px;
+	position: absolute;
+	z-index: 1;
+	text-align: center;
+	color: bisque;
+	font-family: Arial;
+	font-weight: bold;
+}
+
+#red-bar {
+	background-color: red;
+	margin-left: 0px;
+	margin-right: auto;
+}
+
+#blue-bar {
+	margin-left: auto;
+	margin-right: 0px;
+	background-color: blue;
+}
+
+.coordinate {
+	text-align: center;
+	color: gold;
+	font: bold 16px Arial;
+}
+
+#col-coordinate {
+	display: flex;
+	margin-left: 65px;
+}
+
+#col-coordinate div {
+	margin: 0 25px;
+}
+
+#row-coordinate {
+	margin: 1px 0;
+	position: absolute;
+	left: 42px;
+}
+
+#row-coordinate div {
+	margin: 38px 0;
+}
+
+#board {
+	width: 256px;
+	height: 483px;
+	margin-left: 52px;
+	background-color: bisque;
+	/*background-image: url(image/boardbg.jpg);*/
+	position: relative;
+}
+
+#container {
+	margin: 13.5px;
+	position: absolute;
+	width: 235px;
+	height: 483px;
+}
+
+#bgimg {
+	width: 255px;
+	height: 483px;
+	stroke: black;
+	stroke-width: 1px;
+	position: absolute;
+	fill: none;
+}
+
+.bdrow {
+	display: flex;
+}
+
+.piece {
+	width: 34px;
+	height: 34px;
+	border-radius: 50%;
+	border: rgb(78,56,23) double 8px;
+	background-color: rgb(192,149,106);
+	/*background-image: url(image/boardbg.jpg);*/
+	margin: 3.5px;
+	text-align: center;
+	font: 32px "楷体";
+	text-shadow: 0px 0px 2px white;
+	box-shadow: 3px 3px 2px black;
+	transition-duration: 0.4s;
+}
+
+.covered {
+	border: none;
+	width: 50px;
+	height: 50px;
+}
+
+.empty {
+/*	width: 50px;
+	height: 50px;
+	border: none;
+	border-radius: unset;
+	text-shadow: unset;
+	box-shadow: unset;
+	background-color: unset;*/
+	opacity: 0;
+}
+
+.selected {
+	background-color: red;
+	transition-duration: 0s;
+}
+
+.red {
+	color: red;
+}
+
+.smallpiece {
+	width: 20px;
+	height: 20px;
+	border-radius: 50%;
+	border: rgb(78,56,23) double 4px;
+	background-color: rgb(192,149,106);
+	margin: 2px;
+	text-align: center;
+	font: 18px 楷体;
+	text-shadow: 0px 0px 2px white;
+	box-shadow: 3px 3px 2px black;
+}
+
+.disable {
+	opacity: 0.4;
+}
+
+#chosenpanel {
+	display: none;
+	position: absolute;
+	top: 40%;
+	left: 7%;
+	background-color: burlywood;
+}
+
+#chosenpanel .smallpiece:hover {
+	background-color: aquamarine;
+}
+
+#chosenpanel .disable:hover {
+	background-color: rgb(192,149,106);
+}
+
+#red-dead-piece {
+	float: left;
+	margin-top: 10%;
+}
+
+#black-dead-piece {
+	float: right;
+	margin-top: 70%;
+}
+
+.smallpiece span {
+	display: none;
+	position: relative;
+	top: -120%;
+	left: 90%;	width: 15px;
+	height: 15px;
+	border-radius: 50%;
+	font-size: 12px;
+	background-color: red;
+	color: white;
+}
+
+#control {
+	height: 100%;
+	margin: auto; 
+}
+
+#control input {
+	margin: 2px;
+}
+
+#kill>span {
+	margin: 5px;
+}
+
+#rate, #kill, #peaceround {
+	margin-bottom: 10px;
+	/*text-align: center;*/
+}
+
+.label, #rate, #kill, #peaceround {
+	font-family: 隶书;
+	font-size: 25px;
+	font-weight: bold;
+	color: gold;
+}
+
+#buttons {
+	margin-bottom: 10px;
+}
+
+#buttons input {
+	width: 80%;
+}
+
+#step-buttons {
+	display: none;
+}
+
+#selMoveList {
+	width: 128px;
+}
+
+#selMoveList option:first-child {
+	text-align: center;
+}

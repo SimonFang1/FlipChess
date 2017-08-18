@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>翻翻棋AI</title>
+  <link rel="stylesheet" type="text/css" href="flipchess.css">
+    <script src="flipchess.js" type="text/javascript"></script>
+    <link rel="shortcut icon" type="image/gif" href="image/icon.gif">
+</head>
+<body>
+  <div id="flipchess">
+    <div id="ui">
+      <div id="hp">
+        <div class="hpitem">
+          <div class="smallpiece red">帥</div>
+          <div class="progress-bar-container">
+            <div class="progress-bar-text-val"><span>60</span> / 60</div>
+            <div class="progress-bar" id="red-bar"></div>
+          </div>
+        </div>
+        <div class="hpitem" style="flex-direction: row-reverse;">
+          <div class="smallpiece">將</div>
+          <div class="progress-bar-container">
+            <div class="progress-bar-text-val"><span>60</span> / 60</div>
+            <div class="progress-bar" id="blue-bar"></div>
+          </div>
+        </div>
+      </div>
+      <div id="col-coordinate" class="coordinate">
+        <div>0</div>
+        <div>1</div>
+        <div>2</div>
+        <div>3</div>
+      </div>
+      <div id="row-coordinate" class="coordinate">
+        <div>a</div>
+        <div>b</div>
+        <div>c</div>
+        <div>d</div>
+        <div>e</div>
+        <div>f</div>
+        <div>g</div>
+        <div>h</div>
+      </div>
+      <div id="red-dead-piece">
+        <div class="dead smallpiece red disable" val="8">帥<span></span></div>
+        <div class="dead smallpiece red disable" val="9">仕<span></span></div>
+        <div class="dead smallpiece red disable" val="10">相<span></span></div>
+        <div class="dead smallpiece red disable" val="11">俥<span></span></div>
+        <div class="dead smallpiece red disable" val="12">馬<span></span></div>
+        <div class="dead smallpiece red disable" val="13">砲<span></span></div>
+        <div class="dead smallpiece red disable" val="14">兵<span></span></div>
+      </div>
+      <div id="black-dead-piece">
+        <div class="dead smallpiece disable" val="16">將<span></span></div>
+        <div class="dead smallpiece disable" val="17">士<span></span></div>
+        <div class="dead smallpiece disable" val="18">象<span></span></div>
+        <div class="dead smallpiece disable" val="19">車<span></span></div>
+        <div class="dead smallpiece disable" val="20">馬<span></span></div>
+        <div class="dead smallpiece disable" val="21">炮<span></span></div>
+        <div class="dead smallpiece disable" val="22">卒<span></span></div>
+      </div>
+      <div id="board">
+        <svg id="bgimg" xmlns="http://www.w3.org/2000/svg" version="1.1">
+          <rect x="11" y="11" width="235" height="463"></rect>
+          <rect x="14" y="14" width="229" height="457"></rect>
+        </svg>
+        <div id="container">
+        </div>
+        <div id="chosenpanel">
+          <div style="display: flex;">
+            <div class="smallpiece red" val="8">帥</div>
+            <div class="smallpiece red" val="9">仕</div>
+            <div class="smallpiece red" val="10">相</div>
+            <div class="smallpiece red" val="11">俥</div>
+            <div class="smallpiece red" val="12">馬</div>
+            <div class="smallpiece red" val="13">砲</div>
+            <div class="smallpiece red" val="14">兵</div>
+          </div>
+          <div style="display: flex;">
+            <div class="smallpiece" val="16">將</div>
+            <div class="smallpiece" val="17">士</div>
+            <div class="smallpiece" val="18">象</div>
+            <div class="smallpiece" val="19">車</div>
+            <div class="smallpiece" val="20">馬</div>
+            <div class="smallpiece" val="21">炮</div>
+            <div class="smallpiece" val="22">卒</div>
+          </div>    
+        </div>
+      </div>
+    </div>
+    <div id="control">
+      <div id="rate"> 
+        倍率：<span></span>
+      </div>
+      <div id="kill">
+        连杀：<br>
+        <span style="color:red"><span>0</span>/<span>0</span></span>
+        <span style="color:blue"><span>0</span>/<span>0</span></span>
+      </div>
+      <div id="peaceround">
+        空步：<span></span>
+      </div>
+      <div id="buttons">
+        <div><input type="button" value="重新开始" onclick="restart()"></div>
+        <div><input type="button" value="悔棋" onclick="withdrawl()"></div>
+        <div><input type="button" value="输出局面" onclick="printFen()"></div>
+        <div><input type="button" value="保存棋局" onclick="saveComposition()"></div>
+        <div><input type="button" value="导入棋局" onclick="loadComposition()"></div>
+        <!-- <div><input type="file" id="file" onchange="handleFiles(this.files)"/></div> -->
+      </div>
+      <div>
+        <div class="label">步骤</div>
+          <div id="step-buttons">
+            <input type="button" value="上一步" onclick="lastMove()">
+            <input type="button" value="下一步" onclick="nextMove()">
+          </div>
+          <select id="selMoveList" size="5">
+            <option selected="" value="0">=== 开始 ===</option>
+          </select>
+        </div>
+        <div class="label">局面</div>
+        <div><textarea rows="5" cols="15" id="composition"></textarea></div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
