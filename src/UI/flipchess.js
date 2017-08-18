@@ -211,8 +211,8 @@ function restart_silence() {
 	modifyHP(60, 'blue');
 	var born_sp = document.getElementById('chosenpanel').getElementsByClassName('smallpiece');
 	for (var i = 0; i < 14; i++) {
-		var text = born_sp[i].getAttribute('class').replace(' diable', '');
-		born_sp[i].setAttribute('class', text + ' disable');
+		var text = born_sp[i].getAttribute('class').replace(' disable', '');
+		born_sp[i].setAttribute('class', text);
 	}
 	var dead_sp = document.getElementsByClassName('dead smallpiece');
 	for (var i = 0; i < 14; i++) {

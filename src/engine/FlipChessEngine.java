@@ -826,15 +826,33 @@ public class FlipChessEngine {
 		return ""+ (char) ((int)'A' + pos % 16 - 4) + (pos / 16 - 2);
 	}
 	
-	public static String translateMove(Move m) {
+	public String translateMove(Move m) {
+		String name = "帥仕相俥馬砲兵將士象車馬炮卒";
 		if (m.from == 0)
 			return "uncover " + translatePos(m.to);
-		return "from " + translatePos(m.from) + " to " + translatePos(m.to);
+		int p1 = board[m.from];
+		int p2 = board[m.to];
+		String chinese = "";
+		if (p1 < 16) {
+			chinese += "r" + name.charAt(p1 % 8);
+		} else {
+			chinese += "b" + name.charAt(p1 % 8 + 7);
+		}
+		if (p2 != 0) {
+			if (p2 < 16) {
+				chinese += "r" + name.charAt(p2 % 8);
+			} else {
+				chinese += "b" + name.charAt(p2 % 8 + 7);
+			}
+		}
+		
+//		String chinese = name[(p1 < 16 ? 0 : 7)+p1%8] 
+		return "from " + translatePos(m.from) + " to " + translatePos(m.to) + " " + chinese;
 	}
 	
 	public void run(int depth) {
 		if (depth <= 0)
-			depth = 128;
+			depth = 64;
 		long start = System.currentTimeMillis();
 		long end;
 		for (int i = 1; i <= depth; i++) {
@@ -843,6 +861,7 @@ public class FlipChessEngine {
 			end = System.currentTimeMillis();
 			System.out.println("depth:" + i + ", time costs: " + (end-start) + "ms");
 			System.out.println("move: " + translateMove(best_move) + ", score: " + score);
+			if (end-start > 30000) break;
 		}
 	}
 	public static void main(String []args) {
