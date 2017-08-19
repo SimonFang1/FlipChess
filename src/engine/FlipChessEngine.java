@@ -27,11 +27,12 @@ public class FlipChessEngine {
 		{true, true, true, true, true, true, true},
 		{true, false, false, false, false, false, true}
 	};
-	final int [] hp_val = {30, 10, 5, 5, 5, 5, 1};
+	final int [] hp_val = {30, 10, 5, 5, 5, 5, 2};
 	int[] hp = new int[2];
 	
-	final int MAX_SCORE = 10000;
-	int max_depth;
+	final int WIN_SCORE = 10000;
+	final int MAX_SCORE = WIN_SCORE + 200;
+	int max_depth; 
 	Move best_move;
 	int rand_branch;
 	
@@ -609,25 +610,36 @@ public class FlipChessEngine {
 			if (attackMoves.length == 0)
 				return (side == 0 ? 1 : -1) * evaluate();
 			for (Move m : attackMoves) {
+				if (Debug.enable) {
+					Debug.string_stack.push(writeFen());
+				}
 				int capture = makeMove(m);
 				int deadPos = getDeadPos(capture);
 				capture_piece(deadPos, capture, false);
-				if (hp[1 - side] < 0) {
-					int diffhp =  hp[side] - hp[1-side];
-					unmakeMove(m, capture);
-					capture_piece(deadPos, capture, true);
-					return MAX_SCORE - (max_depth - depth) + diffhp;
+				if (hp[1 - side] <= 0) {
+					value = WIN_SCORE - (max_depth - depth) + hp[side] - hp[1-side];
+				} else {
+					side = 1 - side;
+					totalRound++;
+					prev_peaceRound = peaceRound;
+					peaceRound = 0;
+					value = -alphaBetaSearch(depth, -beta, -alpha);
+					peaceRound = prev_peaceRound;
+					side = 1 - side;
+					totalRound--;
 				}
-				side = 1 - side;
-				totalRound++;
-				prev_peaceRound = peaceRound;
-				peaceRound = 0;
-				value = -alphaBetaSearch(depth, -beta, -alpha);
-				peaceRound = prev_peaceRound;
 				unmakeMove(m, capture);
-				side = 1 - side;
-				totalRound--;
 				capture_piece(deadPos, capture, true);
+				if (Debug.enable) {
+					String last = Debug.string_stack.pop();
+					String cur = writeFen();
+					if (!cur.equals(last)) {
+						System.out.println("irreflexible move at attackMove(depth <= 0)");
+						System.out.println(last);
+						System.out.println(cur);
+						System.exit(-1);
+					}
+				}
 				if (value >= beta) return beta;
 				if (value > alpha) {
 					alpha = value;
@@ -640,28 +652,36 @@ public class FlipChessEngine {
 		}
 		Move [] attackMoves = getNextTrivalAttackMoves();
 		for (Move m : attackMoves) {
+			if (Debug.enable) {
+				Debug.string_stack.push(writeFen());
+			}
 			int capture = makeMove(m);
 			int deadPos = getDeadPos(capture);
 			capture_piece(deadPos, capture, false);
-			if (hp[1 - side] < 0) {
-				int diffhp =  hp[side] - hp[1-side];
-				unmakeMove(m, capture);
-				capture_piece(deadPos, capture, true);
-				if (depth == max_depth) {
-					best_move = m;
-				}
-				return MAX_SCORE - (max_depth - depth) + diffhp;
+			if (hp[1 - side] <= 0) {
+				value = WIN_SCORE - (max_depth - depth) + hp[side] - hp[1-side];
+			} else {
+				side = 1 - side;
+				totalRound++;
+				prev_peaceRound = peaceRound;
+				peaceRound = 0;
+				value = -alphaBetaSearch(depth - 1, -beta, -alpha);
+				peaceRound = prev_peaceRound;
+				side = 1 - side;
+				totalRound--;
 			}
-			side = 1 - side;
-			totalRound++;
-			prev_peaceRound = peaceRound;
-			peaceRound = 0;
-			value = -alphaBetaSearch(depth - 1, -beta, -alpha);
-			peaceRound = prev_peaceRound;
 			unmakeMove(m, capture);
-			side = 1 - side;
-			totalRound--;
 			capture_piece(deadPos, capture, true);
+			if (Debug.enable) {
+				String last = Debug.string_stack.pop();
+				String cur = writeFen();
+				if (!cur.equals(last)) {
+					System.out.println("irreflexible move at attackMove");
+					System.out.println(last);
+					System.out.println(cur);
+					System.exit(-1);
+				}
+			}
 			if (value >= beta) return beta;
 			if (value > alpha) {
 				alpha = value;
@@ -673,6 +693,9 @@ public class FlipChessEngine {
 
 		Move [] trivalMoves = getNextTrivialMoves();
 		for (Move m : trivalMoves) {
+			if (Debug.enable) {
+				Debug.string_stack.push(writeFen());
+			}
 			makeMove(m);
 			side = 1 - side;
 			totalRound++;
@@ -682,6 +705,16 @@ public class FlipChessEngine {
 			side = 1 - side;
 			totalRound--;
 			peaceRound--;
+			if (Debug.enable) {
+				String last = Debug.string_stack.pop();
+				String cur = writeFen();
+				if (!cur.equals(last)) {
+					System.out.println("irreflexible move at trivalMoves");
+					System.out.println(last);
+					System.out.println(cur);
+					System.exit(-1);
+				}
+			}
 			if (value >= beta) return beta;
 			if (value > alpha) {
 				alpha = value;
@@ -698,6 +731,9 @@ public class FlipChessEngine {
 		for (Move m : riskCannonAttack) {
 			double pvalue = 0.0;
 			for (Probability p: probabilities) {
+				if (Debug.enable) {
+					Debug.string_stack.push(writeFen());
+				}
 				int bPos = getBornPos(p.piece);
 				Move move = new Move(bPos, m.to);
 				int capture = makeMove(move);
@@ -705,27 +741,32 @@ public class FlipChessEngine {
 				int deadPos = getDeadPos(capture1);
 				capture_piece(deadPos, capture1, false);
 				if (hp[1 - side] < 0) {
-					int diffhp =  hp[side] - hp[1-side];
-					unmakeMove(m, capture1);
-					capture_piece(deadPos, capture1, true);
-					unmakeMove(move, capture);
-					if (depth == max_depth) {
-						best_move = m;
-					}
-					return MAX_SCORE - (max_depth - depth) + diffhp;
+					int v = (WIN_SCORE - (max_depth - depth) + hp[side] - hp[1-side]);
+					pvalue += v * p.rate;
+				} else {
+					side = 1 - side;
+					totalRound++;
+					prev_peaceRound = peaceRound;
+					peaceRound = 0;
+					int v = -alphaBetaSearch(depth - 1, -MAX_SCORE, MAX_SCORE);
+					peaceRound = prev_peaceRound;
+					pvalue += v * p.rate;
+					side = 1 - side;
+					totalRound--;
 				}
-				side = 1 - side;
-				totalRound++;
-				prev_peaceRound = peaceRound;
-				peaceRound = 0;
-				int v = -alphaBetaSearch(depth - 1, -MAX_SCORE, MAX_SCORE);
-				peaceRound = prev_peaceRound;
-				pvalue += v * p.rate;
 				unmakeMove(m, capture1);
-				side = 1 - side;
-				totalRound--;
 				capture_piece(deadPos, capture1, true);
 				unmakeMove(move, capture);
+				if (Debug.enable) {
+					String last = Debug.string_stack.pop();
+					String cur = writeFen();
+					if (!cur.equals(last)) {
+						System.out.println("irreflexible move at riskCannonAttack");
+						System.out.println(last);
+						System.out.println(cur);
+						System.exit(-1);
+					}
+				}
 			}
 			if (pvalue >= beta) return beta;
 			if (pvalue > alpha) {
@@ -739,8 +780,10 @@ public class FlipChessEngine {
 		Move [] nontrivalMoves = getNextNontrivialMoves();
 		for (Move m : nontrivalMoves) {
 			double pvalue = 0.0;
-			double sigma = 0.0;
 			for (Probability p: probabilities) {
+				if (Debug.enable) {
+					Debug.string_stack.push(writeFen());
+				}
 				int bPos = getBornPos(p.piece);
 				Move move = new Move(bPos, m.to);
 				int capture = makeMove(move);  // capture == COVERED
@@ -751,10 +794,19 @@ public class FlipChessEngine {
 				int v = -alphaBetaSearch(depth - 1, -MAX_SCORE, MAX_SCORE);
 				peaceRound = prev_peaceRound;
 				pvalue += v * p.rate;
-				sigma += p.rate;
 				side = 1 - side;
 				totalRound--;
 				unmakeMove(move, capture);
+				if (Debug.enable) {
+					String last = Debug.string_stack.pop();
+					String cur = writeFen();
+					if (!cur.equals(last)) {
+						System.out.println("irreflexible move at nontrivalMove");
+						System.out.println(last);
+						System.out.println(cur);
+						System.exit(-1);
+					}
+				}
 			}
 			if (pvalue >= beta) return beta;
 			if (pvalue > alpha) {
@@ -839,8 +891,7 @@ public class FlipChessEngine {
 				chinese += "b" + name.charAt(p2 % 8 + 7);
 			}
 		}
-		
-//		String chinese = name[(p1 < 16 ? 0 : 7)+p1%8] 
+
 		return "from " + translatePos(m.from) + " to " + translatePos(m.to) + " " + chinese;
 	}
 	
@@ -855,17 +906,19 @@ public class FlipChessEngine {
 			System.out.println("depth:" + i + ", time: " + (end-start) + "ms");
 			try {
 				System.out.println("move: " + translateMove(best_move) + ", score: " + score);
+//				System.out.println(writeFen());
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
 
 //				printBoard();
 //			System.out.println(writeFen());
-			if (end-start > 30000) break;
+			if (end-start > 20000) break;
 		}
 	}
 	public static void main(String []args) {
 		FlipChessEngine fce = new FlipChessEngine();
+		@SuppressWarnings("resource")
 		Scanner scanner = new Scanner(System.in);
 //		String beginFenStr = "???C???A/?1?c????/?P????P?/????n??? K1ABBRRNN1C2PPP/kaabbrr1n1c1pppp b 1 9";
 		String beginFenStr =  scanner.nextLine();
