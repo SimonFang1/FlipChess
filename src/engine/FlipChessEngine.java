@@ -387,7 +387,7 @@ public class FlipChessEngine {
 		final int sideTag = 8;
 		final int [] dir = {0x1, -0x1, 0x10, -0x10};
 		int control_cnt = 0;
-		if (peaceRound > 20) return 0;
+		if (peaceRound >= 30) return 0;
 		for (int i = 0; i < 4; i++) {
 			for (int j = 0; j < 8; j++) {
 				int pos = (i + 2) * 16 + j + 4;

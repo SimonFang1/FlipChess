@@ -371,7 +371,7 @@ function updateMove(move) {
 		state = winner === 'red' ? 4 : 5;
 		setTimeout(function(){alert(winner + ' wins');}, 500);
 	}
-	if (peace_round > 20) {
+	if (peace_round[peace_round.length - 1] >= 30) {
 		cur_move_id = move_stack.length;
 		state = 6;
 		setTimeout(function(){alert('Drawning game');}, 500);
