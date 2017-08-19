@@ -11,7 +11,8 @@ var cur_move_id;
 var state;
 var peace_round = [];
 var init_rate;
-var rate_statck = [];
+var start_double;
+var kill_stack = [];
 
 
 // 0: beginned 1: one piece picked 2: one covered piece picked 
@@ -23,19 +24,17 @@ function Move(from, to, capture) {
 	this.capture =capture;
 }
 
-function Rate(first, black, redmax, blackmax, multikill) {
-	if (first instanceof Rate) {
+function Kill(first, black, redmax, blackmax) {
+	if (first instanceof Kill) {
 		this.red = first.red;
 		this.black = first.black;
 		this.redmax = first.redmax;
 		this.blackmax = first.blackmax;
-		this.multikill = first.multikill;
 	} else {
 		this.red = first;
 		this.black = black;
 		this.redmax = redmax;
 		this.blackmax = blackmax;
-		this.multikill = multikill;
 	}
 }
 
@@ -232,12 +231,14 @@ function restart() {
 	restart_silence();
 	var pstr = prompt('设置基本倍率和抢先倍率:', '10 1');
 	pstr = pstr.split(' ');
-	init_rate = +pstr[0];
+	if (pstr[0] == undefined) pstr[0] = 10;
 	if (pstr[1] == undefined) pstr[1] = 1;
-	rate_statck = [];
-	rate_statck.push(new Rate(0, 0, 0, 0, +pstr[1]));
+	init_rate = +pstr[0];
+	start_double = +pstr[1];
+	kill_stack = [];
+	kill_stack.push(new Kill(0, 0, 0, 0));
 	peace_round.push(0);
-	updateRate(rate_statck[0]);
+	updateRate(kill_stack[0]);
 }
 
 function withdrawl() {
@@ -395,7 +396,6 @@ function updateBornPiece(id, inv) {
 }
 
 function updateDeadPiece(id, inv) {
-	console.log(id);
 	var dead_sp = document.getElementsByClassName('dead smallpiece')[id];
 	var text = dead_sp.getAttribute('class');
 	if (inv) {
@@ -419,23 +419,36 @@ function updateDeadPiece(id, inv) {
 	}
 }
 
-function updateRate(rate) {
+function multikill() {
+	var sigma = 0;
+	for (var i = 1; i < kill_stack.length; i++) {
+		while (i < kill_stack.length && kill_stack[i].red) i++;
+		if (kill_stack[i - 1].red > 2) sigma += kill_stack[i - 1].red;
+	}
+	for (var i = 1; i < kill_stack.length; i++) {
+		while (i < kill_stack.length && kill_stack[i].black) i++;
+		if (kill_stack[i - 1].black > 2) sigma += kill_stack[i - 1].black;
+	}
+	return sigma == 0 ? 1 : sigma;
+}
+
+function updateRate(kill) {
 	var hp = document.getElementsByClassName('progress-bar-text-val');
 	var hpdiff = hp[0].firstChild.innerHTML - hp[1].firstChild.innerHTML;
-	var r = (init_rate + Math.abs(hpdiff)) * rate.multikill;
+	var r = (init_rate + Math.abs(hpdiff)) * start_double * multikill();
 	document.getElementById('rate').children[0].innerHTML = r;
-	var kill = document.getElementById('kill');
-	kill.children[1].children[0].innerHTML = rate.red;
-	kill.children[1].children[1].innerHTML = rate.redmax;
-	kill.children[2].children[0].innerHTML = rate.black;
-	kill.children[2].children[1].innerHTML = rate.blackmax;
+	var kill_div = document.getElementById('kill');
+	kill_div.children[1].children[0].innerHTML = kill.red;
+	kill_div.children[1].children[1].innerHTML = kill.redmax;
+	kill_div.children[2].children[0].innerHTML = kill.black;
+	kill_div.children[2].children[1].innerHTML = kill.blackmax;
 	document.getElementById('peaceround').children[0].innerHTML = peace_round[peace_round.length - 1];
 }
 
 function makeMove(move) {
 	var from, v, id;
 	var to = getBoard(move.to);
-	var last_rate = new Rate(rate_statck[rate_statck.length - 1]);
+	var last_kill = new Kill(kill_stack[kill_stack.length - 1]);
 	if (move.capture.isCovered) {
 		v = move.capture.piece;
 		id = (v >= 16) * 7 + (v % 8);
@@ -451,21 +464,19 @@ function makeMove(move) {
 			updateDeadPiece(id);
 			if (side == 0) {
 				if (v >= 16) {
-					last_rate.red++;
-					if (last_rate.red > last_rate.redmax)
-						last_rate.redmax = last_rate.red;
-					if (last_rate.red >= 3) last_rate.multikill++;
+					last_kill.red++;
+					if (last_kill.red > last_kill.redmax)
+						last_kill.redmax = last_kill.red;
 				} else {
-					last_rate.red = 0;
+					last_kill.red = 0;
 				}
 			} else {
 				if (v < 16) {
-					last_rate.black++;
-					if (last_rate.black > last_rate.blackmax)
-						last_rate.blackmax = last_rate.black;
-					if (last_rate.black >= 3) last_rate.multikill++;
+					last_kill.black++;
+					if (last_kill.black > last_kill.blackmax)
+						last_kill.blackmax = last_kill.black;
 				} else {
-					last_rate.black = 0;
+					last_kill.black = 0;
 				}
 			}
 		} else {
@@ -473,9 +484,9 @@ function makeMove(move) {
 			to.setAttribute('class', 'piece' + (v < 16 ? ' red' : ''));
 			to.innerHTML = pieceName[id];
 			if (side == 0) {
-				last_rate.red = 0;
+				last_kill.red = 0;
 			} else {
-				last_rate.black = 0;
+				last_kill.black = 0;
 			}
 		}
 		peace_round.push(0);
@@ -492,27 +503,25 @@ function makeMove(move) {
 			updateDeadPiece((v >= 16) * 7 + (v % 8));
 			peace_round.push(0);
 			if (side == 0) {
-				last_rate.red++;
-				if (last_rate.red > last_rate.redmax)
-					last_rate.redmax = last_rate.red;
-				if (last_rate.red >= 3) last_rate.multikill++;
+				last_kill.red++;
+				if (last_kill.red > last_kill.redmax)
+					last_kill.redmax = last_kill.red;
 			} else {
-				last_rate.black++;
-				if (last_rate.black > last_rate.blackmax)
-					last_rate.blackmax = last_rate.black;
-				if (last_rate.black >= 3) last_rate.multikill++;
+				last_kill.black++;
+				if (last_kill.black > last_kill.blackmax)
+					last_kill.blackmax = last_kill.black;
 			}
 		} else {
 			if (side == 0) {
-				last_rate.red = 0;
+				last_kill.red = 0;
 			} else {
-				last_rate.black = 0;
+				last_kill.black = 0;
 			}
 			peace_round.push(peace_round[peace_round.length - 1] + 1);
 		}
 	}
-	updateRate(last_rate);
-	rate_statck.push(last_rate);
+	kill_stack.push(last_kill);
+	updateRate(last_kill);
 	changeSide();
 }
 
@@ -553,8 +562,8 @@ function unmakeMove(move) {
 		}
 	}
 	peace_round.pop();
-	rate_statck.pop()
-	updateRate(rate_statck[rate_statck.length - 1]);
+	kill_stack.pop()
+	updateRate(kill_stack[kill_stack.length - 1]);
 	changeSide();
 }
 
@@ -646,7 +655,7 @@ function printFen() {
 }
 
 function saveComposition() {
-	var info = '' + init_rate + ' ' + rate_statck[0].multikill + '\n';
+	var info = '' + init_rate + ' ' + start_double + '\n';
 	var opt = document.getElementById('selMoveList').options;
 	for (var i = 1; i < opt.length; i++) {
 		var offset = 3;
@@ -683,16 +692,17 @@ function fenstr2int(fenstr) {
 
 function loadComposition() {
 	restart_silence();
-	rate_statck = [];
+	kill_stack = [];
 	var composition = document.getElementById('composition');
 	var display = document.getElementById('selMoveList');
 	try {
 		var step = composition.value.split('\n');
 		var r = step[0].split(' ');
 		init_rate = +r[0];
-		rate_statck.push(new Rate(0, 0, 0, 0, +r[1]));
+		start_double = +r[1];
+		kill_stack.push(new Kill(0, 0, 0, 0));
 		peace_round.push(0);
-		updateRate(rate_statck[0]);
+		updateRate(kill_stack[0]);
 		var from, to, capture;
 		for (var i = 1; i < step.length; i++) {
 			if (i == step.length - 1 && step[i] == '') break;

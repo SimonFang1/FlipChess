@@ -613,9 +613,10 @@ public class FlipChessEngine {
 				int deadPos = getDeadPos(capture);
 				capture_piece(deadPos, capture, false);
 				if (hp[1 - side] < 0) {
+					int diffhp =  hp[side] - hp[1-side];
 					unmakeMove(m, capture);
 					capture_piece(deadPos, capture, true);
-					return MAX_SCORE - (max_depth - depth);
+					return MAX_SCORE - (max_depth - depth) + diffhp;
 				}
 				side = 1 - side;
 				totalRound++;
@@ -643,12 +644,13 @@ public class FlipChessEngine {
 			int deadPos = getDeadPos(capture);
 			capture_piece(deadPos, capture, false);
 			if (hp[1 - side] < 0) {
+				int diffhp =  hp[side] - hp[1-side];
 				unmakeMove(m, capture);
 				capture_piece(deadPos, capture, true);
 				if (depth == max_depth) {
 					best_move = m;
 				}
-				return MAX_SCORE - (max_depth - depth);
+				return MAX_SCORE - (max_depth - depth) + diffhp;
 			}
 			side = 1 - side;
 			totalRound++;
@@ -676,10 +678,10 @@ public class FlipChessEngine {
 			totalRound++;
 			peaceRound++;
 			value = -alphaBetaSearch(depth - 1, -beta, -alpha);
-			peaceRound--;
 			unmakeMove(m, 0);
 			side = 1 - side;
 			totalRound--;
+			peaceRound--;
 			if (value >= beta) return beta;
 			if (value > alpha) {
 				alpha = value;
@@ -703,12 +705,14 @@ public class FlipChessEngine {
 				int deadPos = getDeadPos(capture1);
 				capture_piece(deadPos, capture1, false);
 				if (hp[1 - side] < 0) {
+					int diffhp =  hp[side] - hp[1-side];
 					unmakeMove(m, capture1);
 					capture_piece(deadPos, capture1, true);
+					unmakeMove(move, capture);
 					if (depth == max_depth) {
 						best_move = m;
 					}
-					return MAX_SCORE - (max_depth - depth);
+					return MAX_SCORE - (max_depth - depth) + diffhp;
 				}
 				side = 1 - side;
 				totalRound++;
@@ -734,9 +738,6 @@ public class FlipChessEngine {
 		
 		Move [] nontrivalMoves = getNextNontrivialMoves();
 		for (Move m : nontrivalMoves) {
-//			if (depth == 1 && m.equals(nontrivalMoves[20])) {
-//				System.out.println(m);
-//			}
 			double pvalue = 0.0;
 			double sigma = 0.0;
 			for (Probability p: probabilities) {
@@ -749,19 +750,12 @@ public class FlipChessEngine {
 				peaceRound = 0;
 				int v = -alphaBetaSearch(depth - 1, -MAX_SCORE, MAX_SCORE);
 				peaceRound = prev_peaceRound;
-//				System.out.println("v = " + v);
-//				if (v == -950) {
-//					System.out.println("fuck bug");
-//				}
 				pvalue += v * p.rate;
 				sigma += p.rate;
 				side = 1 - side;
 				totalRound--;
 				unmakeMove(move, capture);
 			}
-//			if (depth == 1) {
-//				depth = depth+0;
-//			}
 			if (pvalue >= beta) return beta;
 			if (pvalue > alpha) {
 				alpha = (int) (Math.round(pvalue));
@@ -838,7 +832,7 @@ public class FlipChessEngine {
 		} else {
 			chinese += "b" + name.charAt(p1 % 8 + 7);
 		}
-		if (p2 != 0) {
+		if (p2 != 0 && p2 != COVERED) {
 			if (p2 < 16) {
 				chinese += "r" + name.charAt(p2 % 8);
 			} else {
@@ -856,11 +850,17 @@ public class FlipChessEngine {
 		long start = System.currentTimeMillis();
 		long end;
 		for (int i = 1; i <= depth; i++) {
-			best_move = null;
 			int score = getBestMove(i);
 			end = System.currentTimeMillis();
-			System.out.println("depth:" + i + ", time costs: " + (end-start) + "ms");
-			System.out.println("move: " + translateMove(best_move) + ", score: " + score);
+			System.out.println("depth:" + i + ", time: " + (end-start) + "ms");
+			try {
+				System.out.println("move: " + translateMove(best_move) + ", score: " + score);
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+
+//				printBoard();
+//			System.out.println(writeFen());
 			if (end-start > 30000) break;
 		}
 	}
