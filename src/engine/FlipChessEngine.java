@@ -381,7 +381,7 @@ public class FlipChessEngine {
 	
 
 	public int evaluate() {
-		final int [] effect_val = {40, 30, 10, 8, 9, 15, 2};
+		final int [] effect_val = {40, 30, 10, 8, 9, 15, 5};
 		int open_piece = 0;
 		int cover_piece = 0;
 		final int sideTag = 8;
@@ -695,6 +695,16 @@ public class FlipChessEngine {
 		for (Move m : trivalMoves) {
 			if (Debug.enable) {
 				Debug.string_stack.push(writeFen());
+			}
+			if (peaceRound + 1 >= 30) {
+				value = 0;
+				if (value > alpha) {
+					alpha = value;
+					if (depth == max_depth) {
+						best_move = m;
+					}
+				}
+				break;
 			}
 			makeMove(m);
 			side = 1 - side;
