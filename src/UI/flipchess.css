@@ -126,13 +126,14 @@
 .piece {
 	width: 34px;
 	height: 34px;
+	line-height: 34px;
+	text-align: center;
+	font: 32px 楷体;
 	border-radius: 50%;
 	border: rgb(78,56,23) double 8px;
 	background-color: rgb(192,149,106);
 	/*background-image: url(image/boardbg.jpg);*/
 	margin: 3.5px;
-	text-align: center;
-	font: 32px "楷体";
 	text-shadow: 0px 0px 2px white;
 	box-shadow: 3px 3px 2px black;
 	transition-duration: 0.4s;

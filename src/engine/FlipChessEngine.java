@@ -32,6 +32,7 @@ public class FlipChessEngine {
 	
 	final int WIN_SCORE = 10000;
 	final int MAX_SCORE = WIN_SCORE + 200;
+	double p_advantage_pass;
 	int max_depth; 
 	Move best_move;
 	int rand_branch;
@@ -617,7 +618,8 @@ public class FlipChessEngine {
 				int deadPos = getDeadPos(capture);
 				capture_piece(deadPos, capture, false);
 				if (hp[1 - side] <= 0) {
-					value = WIN_SCORE - (max_depth - depth) + hp[side] - hp[1-side];
+//					value = WIN_SCORE - (max_depth - depth) + hp[side] - hp[1-side];
+					value = WIN_SCORE + hp[side] - hp[1-side];
 				} else {
 					side = 1 - side;
 					totalRound++;
@@ -659,7 +661,8 @@ public class FlipChessEngine {
 			int deadPos = getDeadPos(capture);
 			capture_piece(deadPos, capture, false);
 			if (hp[1 - side] <= 0) {
-				value = WIN_SCORE - (max_depth - depth) + hp[side] - hp[1-side];
+//				value = WIN_SCORE - (max_depth - depth) + hp[side] - hp[1-side];
+				value = WIN_SCORE + hp[side] - hp[1-side];
 			} else {
 				side = 1 - side;
 				totalRound++;
@@ -734,7 +737,7 @@ public class FlipChessEngine {
 			}
 		}
 		
-		if (alpha > 0) return alpha;
+//		18 
 		
 		Probability [] probabilities = getProbabilities();
 		Move [] riskCannonAttack = getNextRiskCannonAttack();
@@ -751,7 +754,8 @@ public class FlipChessEngine {
 				int deadPos = getDeadPos(capture1);
 				capture_piece(deadPos, capture1, false);
 				if (hp[1 - side] < 0) {
-					int v = (WIN_SCORE - (max_depth - depth) + hp[side] - hp[1-side]);
+//					int v = (WIN_SCORE - (max_depth - depth) + hp[side] - hp[1-side]);
+					int v = WIN_SCORE + hp[side] - hp[1-side];
 					pvalue += v * p.rate;
 				} else {
 					side = 1 - side;
@@ -936,8 +940,8 @@ public class FlipChessEngine {
 		System.out.println(fce.writeFen());
 //		fce.printBoard();
 		fce.rand_branch = 0;
-		int depth = 0;
-		fce.run(depth);
+		fce.p_advantage_pass = 0.9;
+		fce.run(0);
 	}
 }
 

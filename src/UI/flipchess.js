@@ -670,8 +670,8 @@ function saveComposition() {
 	document.execCommand('copy');
 }
 
-function fenstr2int(fenstr) {
-	switch (fenstr) {
+function fenchar2int(fenchar) {
+	switch (fenchar) {
 		case 'K': return 8;
 		case 'A': return 9;
 		case 'B': return 10;
@@ -686,6 +686,7 @@ function fenstr2int(fenstr) {
 		case 'n': return 20;
 		case 'c': return 21;
 		case 'p': return 22;
+		case '?': return 1;
 		default: return 0;
 	}
 }
@@ -714,7 +715,7 @@ function loadComposition() {
 				}
 				capture = {};
 				capture.isCovered = true;
-				capture.piece = fenstr2int(step[i][6]);
+				capture.piece = fenchar2int(step[i][6]);
 			} else if (step[i].length == 4) {
 				capture = +getBoard(to).getAttribute('val');
 			} else {
@@ -736,4 +737,121 @@ function loadComposition() {
 	cur_move_id = move_stack.length;
 	state = 6;
 	document.getElementById('step-buttons').style.display = 'block';
+}
+
+function readFen() {
+	try {
+		var fenstr = document.getElementById('composition').value.split(' ');
+		var cols = fenstr[0].split('/');
+		dead_count = [1, 2, 2, 2, 2, 2, 5, 1, 2, 2, 2, 2, 2, 5];
+		for (var i = 0; i < 4; i++) {
+			var j = 0;
+			for (var c = 0; c < cols[i].length; c++) {
+				var ch = cols[i][c];
+				if (isNaN(ch)) {
+					var piece = fenchar2int(ch);
+					var type;
+					if (piece == 1) {
+						type = ' covered';
+						board[i][j].innerHTML = '';
+					} else {
+						if (piece < 16) {
+							type = ' red';
+							board[i][j].innerHTML = pieceName[piece % 8];
+							dead_count[piece % 8]--;
+						} else {
+							type = '';
+							board[i][j].innerHTML = pieceName[7 + piece % 8];
+							dead_count[piece % 8 + 7]--;
+						}
+					}
+					board[i][j].setAttribute('class', 'piece' + type);
+					board[i][j].setAttribute('val', piece);	
+					j++;		
+				} else {
+					var k = j;
+					j += +ch;
+					for (; k < j; k++) {
+						board[i][k].setAttribute('class', 'piece empty');
+						board[i][k].setAttribute('val', 0);
+						board[i][k].innerHTML = '';
+					}
+				}
+			}
+		}
+		var covered = fenstr[1].split('/');
+		born_count = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+		var id;
+		for (var c = 0; c < covered[0].length; c++) {
+			var ch = covered[0][c];
+			if (isNaN(ch)) {
+				id = fenchar2int(ch) % 8;
+				dead_count[id]--;
+				born_count[id]++;
+			}
+		}
+		for (var c = 0; c < covered[1].length; c++) {
+			var ch = covered[1][c];
+			if (isNaN(ch)) {
+				id = fenchar2int(ch) % 8 + 7;
+				dead_count[id]--;
+				born_count[id]++;
+			}
+		}
+		var hp = [60, 60];
+		for (var i = 0; i < 7; i++) {
+			if (dead_count[i]) {
+				hp[0] -= dead_count[i] * health[i];
+			}	
+		}
+		for (var i = 0; i < 7; i++) {
+			if (dead_count[i + 7]) {
+				hp[1] -= dead_count[i + 7] * health[i];
+			}	
+		}
+		modifyHP(hp[0], 'red');
+		modifyHP(hp[1], 'blue');
+		var born_sp = document.getElementById('chosenpanel').getElementsByClassName('smallpiece');
+		for (var i = 0; i < 14; i++) {
+			var text = born_sp[i].getAttribute('class').replace(' disable', '');
+			if (born_count[i]) {
+				born_sp[i].setAttribute('class', text);
+			} else {
+				born_sp[i].setAttribute('class', text + ' disable');
+			}
+		}
+		var dead_sp = document.getElementsByClassName('dead smallpiece');
+		for (var i = 0; i < 14; i++) {
+			var text = dead_sp[i].getAttribute('class').replace(' disable', '');
+			dead_sp[i].children[0].innerHTML = dead_count[i];
+			if (dead_count[i]) {
+				dead_sp[i].setAttribute('class', text);
+				if (dead_count[i] > 1) {
+					dead_sp[i].children[0].style.display = 'block';
+				}
+			} else {
+				dead_sp[i].setAttribute('class', text + ' disable');
+				dead_sp[i].children[0].style.display = '';
+			}
+		}
+		side = fenstr[2] == 'w' ? 1 : 0;
+		changeSide();
+		peace_round.push(+fenstr[3]);
+		init_rate = 10;
+		start_double = 1;
+		kill_stack = [];
+		kill_stack.push(new Kill(0, 0, 0, 0));
+		updateRate(kill_stack[0]);
+		document.getElementById('step-buttons').style.display = '';
+		state = 0;
+	} catch (e) {
+		console.log(e + '\ninvalid FEN string');
+		restart_silence();
+		init_rate = 10;
+		start_double = 1;
+		kill_stack = [];
+		kill_stack.push(new Kill(0, 0, 0, 0));
+		peace_round.push(0);
+		updateRate(kill_stack[0]);
+	}
 }
